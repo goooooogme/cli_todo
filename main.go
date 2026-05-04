@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"cli_todo/text"
 	"fmt"
 	"log"
 	"os"
@@ -13,13 +14,17 @@ func enterInput() (string, error) {
 
 	input, err := reader.ReadString('\n')
 
+	if err != nil {
+		return "", err
+	}
+
 	input = strings.TrimSpace(input)
 
 	return input, err
 }
 
 func addTask() {
-	textForAddTask()
+	text.TextForAddTask()
 
 	input, err := enterInput()
 
@@ -27,7 +32,7 @@ func addTask() {
 		log.Fatal(err)
 	}
 
-	file, err := os.OpenFile("tasks.txt", os.O_APPEND|os.O_WRONLY, 0644)
+	file, err := os.OpenFile("tasks.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 
 	if err != nil {
 		log.Fatal(err)
@@ -36,7 +41,7 @@ func addTask() {
 	defer file.Close()
 
 	file.WriteString(input + "\n")
-	fmt.Println("done")
+	text.TextForAddTaskDone()
 }
 
 func listTasks() {
@@ -50,36 +55,33 @@ func listTasks() {
 
 	scanner := bufio.NewScanner(file)
 
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
+	}
+
 	for scanner.Scan() {
 		fmt.Println(scanner.Text())
 	}
 }
 
-func textForMenu() {
-	fmt.Println("1 - list tasks")
-	fmt.Println("2 - add task")
-
-	fmt.Println("select operation:")
-}
-
-func textForAddTask() {
-	fmt.Println("input")
-}
-
 func main() {
-	textForMenu()
+	for {
+		text.TextForMenu()
 
-	input, err := enterInput()
+		input, err := enterInput()
 
-	if err != nil {
-		log.Fatal(err)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		switch input {
+		case "1":
+			listTasks()
+		case "2":
+			addTask()
+		default:
+			return
+		}
 	}
 
-	if input == "1" {
-		listTasks()
-	} else if input == "2" {
-		addTask()
-	} else {
-		fmt.Println("invalid command")
-	}
 }
